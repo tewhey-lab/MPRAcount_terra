@@ -1,0 +1,15 @@
+{
+  "MPRAcount.flags": "String? (optional, default = \"-ECSM -A 0.05\")",
+  "MPRAcount.barcode_orientation": "Int? (optional, default = 2)",
+  "MPRAcount.replicate_id": "Array[String]",
+  "MPRAcount.disk_pad": "Int (optional, default = 7)",
+  "MPRAcount.bc_len": "Int? (optional, default = 20)",
+  "MPRAcount.make_infile.working_directory": "String",
+  "MPRAcount.prep_counts.working_directory": "String",
+  "MPRAcount.id_out": "String",
+  "MPRAcount.replicate_fastq": "Array[File]",
+  "MPRAcount.docker_tag": "String? (optional, default = \"latest\")",
+  "MPRAcount.associate.working_directory": "String",
+  "MPRAcount.acc_id": "File",
+  "MPRAcount.parsed": "File"
+}
