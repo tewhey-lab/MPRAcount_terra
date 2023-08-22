@@ -18,8 +18,8 @@ workflow MPRAcount {
 
   Int disk_pad = 7
 
-  Int prep_disk = ceil(2*size(replicate.left, "GB")) + disk_pad
-  Int assoc_disk = ceil(size(parsed, "GB") + size(prep_counts.out, "GB")) + disk_pad
+  Int prep_disk = ceil(0.5*size(replicate_fastq, "GB")) + disk_pad
+  Int assoc_disk = ceil(size(parsed, "GB") + 0.5*size(replicate_fastq, "GB")) + disk_pad
   Int make_disk = ceil(size(associate.outF, "GB")) + disk_pad
   Int count_disk = ceil(size(associate.outF, "GB")) + disk_pad
   Int qc_disk = disk_pad
@@ -32,6 +32,7 @@ workflow MPRAcount {
                           barcode_orientation=barcode_orientation,
                           bc_len=bc_len,
                           sample_id=replicate.right,
+                          docker_tag=docker_tag,
                           prep_disk=prep_disk
                         }
     call associate { input:
@@ -40,6 +41,7 @@ workflow MPRAcount {
                         parsed=parsed,
                         barcode_orientation=barcode_orientation,
                         sample_id=replicate.right,
+                        docker_tag=docker_tag,
                         assoc_disk=assoc_disk
                       }
                     }
@@ -48,6 +50,7 @@ workflow MPRAcount {
                         tag_files=associate.outF,
                         tag_ids=associate.outS,
                         id_out=id_out,
+                        docker_tag=docker_tag,
                         make_disk=make_disk
                       }
   call make_count_table { input:
@@ -57,6 +60,7 @@ workflow MPRAcount {
                             flags=flags,
                             id_out=id_out,
                             acc_id=acc_id,
+                            docker_tag=docker_tag,
                             count_disk=count_disk
                           }
   call count_QC { input:
@@ -65,12 +69,14 @@ workflow MPRAcount {
                     #working_directory = working_directory,
                     id_out = id_out,
                     acc_id = acc_id,
+                    docker_tag=docker_tag,
                     qc_disk=qc_disk
                 }
   call countRaw { input:
                     count_out = make_count_table.count,
                     cond_out = count_QC.out,
                     id_out = id_out,
+                    docker_tag=docker_tag,
                     #out_directory = out_directory,
                     #working_directory = working_directory
                     raw_disk=raw_disk
@@ -94,6 +100,7 @@ task prep_counts {
   Int prep_disk
   String working_directory
   String sample_id
+  String docker_tag
 
   command {
     python /scripts/make_counts.py ${sample_fastq} ${sample_id} ${barcode_orientation} ${bc_len}
@@ -115,6 +122,7 @@ task associate {
   Int assoc_disk
   String working_directory
   String sample_id
+  String docker_tag
   command {
     perl /scripts/associate_tags.pl ${matched} ${parsed} ${sample_id}.tag ${barcode_orientation}
     }
@@ -135,6 +143,7 @@ task make_infile {
   Int make_disk
   String working_directory
   String id_out
+  String docker_tag
   command <<<
     python /scripts/make_infile.py ${sep=',' tag_ids} ${sep=',' tag_files} ${id_out}
   >>>
@@ -154,6 +163,7 @@ task make_count_table {
   Int count_disk
   String? flags = ""
   String id_out
+  String docker_tag
   command <<<
     perl /scripts/compile_bc_cs.pl ${flags} ${list_inFile} ${id_out}.count > ${id_out}.log
     awk '{if(NR%7==1){sum=0;good=0;bc=0;over=0;}
@@ -183,12 +193,13 @@ task count_QC {
   File count_out
   Int qc_disk
   String id_out
+  String docker_tag
   command {
     Rscript /scripts/count_QC.R ${acc_id} ${count_out} ${id_out}
     }
   output {
     File out="${id_out}_condition.txt"
-    Array[File] plots="*_QC.pdf"
+    Array[File]+ plots=glob("*_QC.pdf")
     }
   runtime {
     docker: "quay.io/tewhey-lab/mpracount:${docker_tag}"
@@ -199,17 +210,19 @@ task count_QC {
 task countRaw {
   File count_out
   File cond_out
+  Int raw_disk
   String id_out
+  String docker_tag
   command {
     Rscript /scripts/bc_raw.R ${cond_out} ${count_out} ${id_out}
     }
   output {
-    Array[File] out="*.counts"
+    Array[File]+ out=glob("*.counts")
     }
   runtime {
     docker: "quay.io/tewhey-lab/mpracount:${docker_tag}"
     memory: "3000 MB"
-    disks: "local-disk ${prep_disk} SSD"
+    disks: "local-disk ${raw_disk} SSD"
     }
   }
 # task relocate {
