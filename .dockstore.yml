@@ -1,0 +1,7 @@
+version: 1.2
+workflows: 
+  - subclass: WDL
+    primaryDescriptorPath: /MPRAcount_runtime.wdl
+    testParameterFiles:
+      - /MPRAcount_terra_inputs.json
+    name: MPRAcount
