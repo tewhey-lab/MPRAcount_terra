@@ -18,10 +18,10 @@ workflow MPRAcount {
 
   Int disk_pad = 7
 
-  Int prep_disk = ceil(0.5*size(replicate_fastq, "GB")) + disk_pad
-  Int assoc_disk = ceil(size(parsed, "GB") + 0.5*size(replicate_fastq, "GB")) + disk_pad
-  Int make_disk = ceil(size(associate.outF, "GB")) + disk_pad
-  Int count_disk = ceil(size(associate.outF, "GB")) + disk_pad
+  Int prep_disk = ceil(2*size(replicate_fastq[1], "GB")) + disk_pad
+  Int assoc_disk = ceil(size(parsed, "GB") + 2*size(replicate_fastq[1], "GB")) + disk_pad
+  Int make_disk = ceil(length(associate.outF)*size(associate.outF[1], "GB")) + disk_pad
+  Int count_disk = ceil(length(associate.outF)*size(associate.outF[1], "GB")) + disk_pad
   Int qc_disk = disk_pad
   Int raw_disk = disk_pad
 
