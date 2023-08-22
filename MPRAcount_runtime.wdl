@@ -98,7 +98,7 @@ task prep_counts {
   Int barcode_orientation
   Int bc_len
   Int prep_disk
-  String working_directory
+  #String working_directory
   String sample_id
   String docker_tag
 
@@ -120,7 +120,7 @@ task associate {
   File parsed
   Int barcode_orientation
   Int assoc_disk
-  String working_directory
+  #String working_directory
   String sample_id
   String docker_tag
   command {
@@ -141,7 +141,7 @@ task make_infile {
   Array[File] tag_files
   Array[String] tag_ids
   Int make_disk
-  String working_directory
+  #String working_directory
   String id_out
   String docker_tag
   command <<<
