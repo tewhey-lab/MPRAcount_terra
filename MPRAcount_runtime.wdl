@@ -21,11 +21,11 @@ workflow MPRAcount {
   Int prep_disk = ceil(2*size(replicate_fastq[1], "GB")) + disk_pad
   Int assoc_disk = ceil(size(parsed, "GB") + 2*size(replicate_fastq[1], "GB")) + disk_pad
   Int make_disk = ceil(length(associate.outF)*size(associate.outF[1], "GB")) + disk_pad
-  Int count_disk = ceil(length(associate.outF)*size(associate.outF[1], "GB")) + disk_pad
+  Int count_disk = ceil(2*length(associate.outF)*size(associate.outF[1], "GB")) + disk_pad
   Int qc_disk = disk_pad
   Int raw_disk = disk_pad
 
-  #Int assoc_mem = ceil(2.3*size(associate.outF[1], "GB"))
+  Int assoc_mem = ceil(2.3*size(prep_counts.out[1], "GB"))
 
   scatter (replicate in fastq_id) {
     call prep_counts { input:
@@ -44,8 +44,8 @@ workflow MPRAcount {
                         barcode_orientation=barcode_orientation,
                         sample_id=replicate.right,
                         docker_tag=docker_tag,
-                        assoc_disk=assoc_disk
-                        #assoc_mem=assoc_mem
+                        assoc_disk=assoc_disk,
+                        assoc_mem=assoc_mem
                       }
                     }
   call make_infile { input:
@@ -123,7 +123,7 @@ task associate {
   File parsed
   Int barcode_orientation
   Int assoc_disk
-  #Int assoc_mem
+  Int assoc_mem
   #String working_directory
   String sample_id
   String docker_tag
@@ -136,7 +136,7 @@ task associate {
     }
   runtime {
     docker: "quay.io/tewhey-lab/mpracount:${docker_tag}"
-    memory: "12G"
+    memory: "${assoc_mem}G"
     cpu: 4
     disks: "local-disk ${assoc_disk} SSD"
     }
@@ -189,7 +189,7 @@ task make_count_table {
     }
   runtime {
     docker: "quay.io/tewhey-lab/mpracount:${docker_tag}"
-    memory: "6G"
+    memory: "10G"
     cpu: 4
     disks: "local-disk ${count_disk} SSD"
     }
