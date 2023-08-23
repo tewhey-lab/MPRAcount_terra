@@ -163,6 +163,7 @@ task make_infile {
   }
 task make_count_table {
   # Compile barcodes into a count table - columns from left to right: barcode oligo (Error CIGAR MD Aln_Start:Stop) [replicate names]
+  Array[File] tag_files
   File list_inFile
   File acc_id
   Int count_disk
@@ -170,7 +171,7 @@ task make_count_table {
   String id_out
   String docker_tag
   command <<<
-    sed 's/\/cromwell_root/gs:\//g' ${list_inFile} > in_alt.txt
+    awk -F'[/\t]' '{print $1"\t" $NF}' ${list_inFile} > in_alt.txt
     perl /scripts/compile_bc_cs.pl ${flags} in_alt.txt ${id_out}.count > ${id_out}.log
     awk '{if(NR%7==1){sum=0;good=0;bc=0;over=0;}
       if(NR%7==1){printf "%s\t",$3; printf "%s\t", ${id_out};}
