@@ -59,6 +59,7 @@ workflow MPRAcount {
   call make_count_table { input:
                             #working_directory=working_directory,
                             #out_directory=out_directory,
+                            tag_files=associate.outF,
                             list_inFile=make_infile.out,
                             flags=flags,
                             id_out=id_out,
