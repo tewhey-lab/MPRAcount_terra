@@ -132,7 +132,8 @@ task associate {
     }
   runtime {
     docker: "quay.io/tewhey-lab/mpracount:${docker_tag}"
-    memory: "6G"
+    memory: "8G"
+    cpu: 4
     disks: "local-disk ${assoc_disk} SSD"
     }
   }
@@ -185,6 +186,7 @@ task make_count_table {
   runtime {
     docker: "quay.io/tewhey-lab/mpracount:${docker_tag}"
     memory: "6G"
+    cpu: 4
     disks: "local-disk ${count_disk} SSD"
     }
   }
