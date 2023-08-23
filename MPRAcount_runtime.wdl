@@ -170,7 +170,8 @@ task make_count_table {
   String id_out
   String docker_tag
   command <<<
-    perl /scripts/compile_bc_cs.pl ${flags} ${list_inFile} ${id_out}.count > ${id_out}.log
+    sed 's/\/cromwell_root/gs:\//g' ${list_inFile} > in_alt.txt
+    perl /scripts/compile_bc_cs.pl ${flags} in_alt.txt ${id_out}.count > ${id_out}.log
     awk '{if(NR%7==1){sum=0;good=0;bc=0;over=0;}
       if(NR%7==1){printf "%s\t",$3; printf "%s\t", ${id_out};}
       if(NR%7==3){sum+=3;bc+=$2;over+=$3;}
