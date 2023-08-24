@@ -21,7 +21,7 @@ workflow MPRAcount {
   Int prep_disk = ceil(2*size(replicate_fastq[1], "GB")) + disk_pad
   Int assoc_disk = ceil(size(parsed, "GB") + 2*size(replicate_fastq[1], "GB")) + disk_pad
   Int make_disk = ceil(length(associate.outF)*size(associate.outF[1], "GB")) + disk_pad
-  Int count_disk = ceil(2*length(associate.outF)*size(associate.outF[1], "GB")) + disk_pad
+  Int count_disk = ceil(3*length(associate.outF)*size(associate.outF[1], "GB")) + disk_pad
   Int qc_disk = disk_pad
   Int raw_disk = disk_pad
 
@@ -192,8 +192,8 @@ task make_count_table {
     }
   runtime {
     docker: "quay.io/tewhey-lab/mpracount:${docker_tag}"
-    memory: "10G"
-    cpu: 4
+    memory: "15G"
+    cpu: 8
     disks: "local-disk ${count_disk} SSD"
     }
   }
