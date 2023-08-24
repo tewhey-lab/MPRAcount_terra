@@ -61,7 +61,7 @@ workflow MPRAcount {
                             #out_directory=out_directory,
                             tag_files=associate.outF,
                             tag_ids=associate.outS,
-                            list_inFile=make_infile.out,
+                            #list_inFile=make_infile.out,
                             flags=flags,
                             id_out=id_out,
                             acc_id=acc_id,
