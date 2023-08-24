@@ -48,18 +48,19 @@ workflow MPRAcount {
                         #assoc_mem=assoc_mem
                       }
                     }
-  call make_infile { input:
-                        #working_directory=working_directory,
-                        tag_files=associate.outF,
-                        tag_ids=associate.outS,
-                        id_out=id_out,
-                        docker_tag=docker_tag,
-                        make_disk=make_disk
-                      }
+  #call make_infile { input:
+  #                      #working_directory=working_directory,
+  #                      tag_files=associate.outF,
+  #                      tag_ids=associate.outS,
+  #                      id_out=id_out,
+  #                      docker_tag=docker_tag,
+  #                      make_disk=make_disk
+  #                    }
   call make_count_table { input:
                             #working_directory=working_directory,
                             #out_directory=out_directory,
                             tag_files=associate.outF,
+                            tag_ids=associate.outS,
                             list_inFile=make_infile.out,
                             flags=flags,
                             id_out=id_out,
@@ -142,39 +143,43 @@ task associate {
     disks: "local-disk ${assoc_disk} SSD"
     }
   }
-task make_infile {
-  # make a list of the association output and the tag ids to pass to the barcode compilation function
-  Array[File] tag_files
-  Array[String] tag_ids
-  Int make_disk
-  #String working_directory
-  String id_out
-  String docker_tag
-  command <<<
-    python /scripts/make_infile.py ${sep=',' tag_ids} ${sep=',' tag_files} ${id_out}
-  >>>
-  output {
-    File out="${id_out}_samples.txt"
-    }
-  runtime {
-    docker: "quay.io/tewhey-lab/mpracount:${docker_tag}"
-    memory: "3000 MB"
-    disks: "local-disk ${make_disk} SSD"
-    }
-  }
+#task make_infile {
+#  # make a list of the association output and the tag ids to pass to the barcode compilation function
+#  Array[File] tag_files
+#  Array[String] tag_ids
+#  Int make_disk
+#  #String working_directory
+#  String id_out
+#  String docker_tag
+#  command <<<
+#    python /scripts/make_infile.py ${sep=',' tag_ids} ${sep=',' tag_files} ${id_out}
+#  >>>
+#  output {
+#    File out="${id_out}_samples.txt"
+#    }
+#  runtime {
+#    docker: "quay.io/tewhey-lab/mpracount:${docker_tag}"
+#    memory: "3000 MB"
+#    disks: "local-disk ${make_disk} SSD"
+#    }
+#  }
 task make_count_table {
   # Compile barcodes into a count table - columns from left to right: barcode oligo (Error CIGAR MD Aln_Start:Stop) [replicate names]
   Array[File] tag_files
-  File list_inFile
+  Array[String] tag_ids
+  #File list_inFile
   File acc_id
   Int count_disk
   String? flags = ""
   String id_out
   String docker_tag
+
+  Int num_rep = length(tag_ids)
   command <<<
-    awk -F'[/\t]' '{print $1"\t" $NF}' ${list_inFile} > in_alt.txt
-    ls
-    perl /scripts/compile_bc_cs.pl ${flags} in_alt.txt ${id_out}.count > ${id_out}.log
+    #awk -F'[/\t]' '{print $1"\t" $NF}' ${list_inFile} > in_alt.txt
+    #ls
+    #perl /scripts/compile_bc_cs.pl ${flags} in_alt.txt ${id_out}.count > ${id_out}.log
+    perl /scripts/compile_bc_cs_terra.pl ${flags} ${id_out}.count ${num_rep} ${sep=' ' tag_ids} ${sep=' ' tag_files} > ${id_out}.log
     awk '{if(NR%7==1){sum=0;good=0;bc=0;over=0;}
       if(NR%7==1){printf "%s\t",$3; printf "%s\t", ${id_out};}
       if(NR%7==3){sum+=3;bc+=$2;over+=$3;}
