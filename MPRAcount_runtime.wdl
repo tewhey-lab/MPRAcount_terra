@@ -176,7 +176,7 @@ task make_count_table {
 
   Int num_rep = length(tag_ids)
   command <<<
-    perl /scripts/compile_bc_cs_terra.pl ${flags} ${id_out}.count ${num_rep} ${sep=' ' tag_ids} ${sep=' ' tag_files} > ${id_out}.log
+    perl /scripts/compile_bc_cs_terra.pl ${flags} ${id_out}.count ${num_rep} ${sep=' ' tag_files} ${sep=' ' tag_ids} > ${id_out}.log
     awk '{if(NR%7==1){sum=0;good=0;bc=0;over=0;}
       if(NR%7==1){printf "%s\t",$3; printf "%s\t", ${id_out};}
       if(NR%7==3){sum+=3;bc+=$2;over+=$3;}
