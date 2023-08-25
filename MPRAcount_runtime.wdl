@@ -25,7 +25,10 @@ workflow MPRAcount {
   Int qc_disk = disk_pad
   Int raw_disk = disk_pad
 
-  #Int assoc_mem = ceil(2.3*size(prep_counts.out[1], "GB"))
+  Int count_mem = ceil(3*length(associate.outF)*size(associate.outF[1],"GB"))
+  Int qc_mem = ceil(10*size(make_count_table.count, "GB"))
+  Int raw_mem = ceil(10*size(make_count_table.count, "GB"))
+  Int assoc_mem = ceil(10*size(replicate_fastq[1], "GB"))
 
   scatter (replicate in fastq_id) {
     call prep_counts { input:
@@ -45,7 +48,7 @@ workflow MPRAcount {
                         sample_id=replicate.right,
                         docker_tag=docker_tag,
                         assoc_disk=assoc_disk,
-                        #assoc_mem=assoc_mem
+                        assoc_mem=assoc_mem
                       }
                     }
   #call make_infile { input:
@@ -66,7 +69,8 @@ workflow MPRAcount {
                             id_out=id_out,
                             acc_id=acc_id,
                             docker_tag=docker_tag,
-                            count_disk=count_disk
+                            count_disk=count_disk,
+                            count_mem=count_mem
                           }
   call count_QC { input:
                     count_out = make_count_table.count,
@@ -75,7 +79,8 @@ workflow MPRAcount {
                     id_out = id_out,
                     acc_id = acc_id,
                     docker_tag=docker_tag,
-                    qc_disk=qc_disk
+                    qc_disk=qc_disk,
+                    qc_mem=qc_mem
                 }
   call countRaw { input:
                     count_out = make_count_table.count,
@@ -84,7 +89,8 @@ workflow MPRAcount {
                     docker_tag=docker_tag,
                     #out_directory = out_directory,
                     #working_directory = working_directory
-                    raw_disk=raw_disk
+                    raw_disk=raw_disk,
+                    raw_mem=raw_mem
                 }
   # call relocate { input:
   #                   matched = prep_counts.out,
@@ -125,7 +131,7 @@ task associate {
   File parsed
   Int barcode_orientation
   Int assoc_disk
-  #Int assoc_mem
+  Int assoc_mem
   #String working_directory
   String sample_id
   String docker_tag
@@ -138,7 +144,7 @@ task associate {
     }
   runtime {
     docker: "quay.io/tewhey-lab/mpracount:${docker_tag}"
-    memory: "12G"
+    memory: "${assoc_mem}G"
     cpu: 4
     disks: "local-disk ${assoc_disk} SSD"
     }
@@ -170,6 +176,7 @@ task make_count_table {
   #File list_inFile
   File acc_id
   Int count_disk
+  Int count_mem
   String? flags = ""
   String id_out
   String docker_tag
@@ -195,7 +202,7 @@ task make_count_table {
     }
   runtime {
     docker: "quay.io/tewhey-lab/mpracount:${docker_tag}"
-    memory: "30G"
+    memory: "${count_mem}G"
     cpu: 8
     disks: "local-disk ${count_disk} SSD"
     }
@@ -204,6 +211,7 @@ task count_QC {
   File acc_id
   File count_out
   Int qc_disk
+  Int qc_mem
   String id_out
   String docker_tag
   command {
@@ -215,7 +223,7 @@ task count_QC {
     }
   runtime {
     docker: "quay.io/tewhey-lab/mpracount:${docker_tag}"
-    memory: "10G"
+    memory: "${qc_mem}G"
     cpu: 4
     disks: "local-disk ${qc_disk} SSD"
     }
@@ -224,6 +232,7 @@ task countRaw {
   File count_out
   File cond_out
   Int raw_disk
+  Int raw_mem
   String id_out
   String docker_tag
   command {
@@ -234,7 +243,7 @@ task countRaw {
     }
   runtime {
     docker: "quay.io/tewhey-lab/mpracount:${docker_tag}"
-    memory: "10G"
+    memory: "${raw_mem}G"
     cpu: 4
     disks: "local-disk ${raw_disk} SSD"
     }
