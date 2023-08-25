@@ -234,7 +234,8 @@ task countRaw {
     }
   runtime {
     docker: "quay.io/tewhey-lab/mpracount:${docker_tag}"
-    memory: "3000 MB"
+    memory: "10G"
+    cpu: 4
     disks: "local-disk ${raw_disk} SSD"
     }
   }
