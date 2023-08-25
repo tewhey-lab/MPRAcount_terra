@@ -215,7 +215,7 @@ task count_QC {
     }
   runtime {
     docker: "quay.io/tewhey-lab/mpracount:${docker_tag}"
-    memory: "5G"
+    memory: "10G"
     cpu: 4
     disks: "local-disk ${qc_disk} SSD"
     }
